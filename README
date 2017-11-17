@@ -12,3 +12,7 @@ object list:
 SocketTextStream.scala     
 * socket stream
 * run spark app and exe 'nc -lk 9999' on same host, enter char then receive on spark app client 
+
+KafkaStream.scala
+* kafka stream
+* run spark app and exe 'kafka-console-producer --broker-list 192.168.1.109:9092 --topic xdr' on another client, then receive on spark app client
