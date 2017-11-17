@@ -1,3 +1,9 @@
+yarn命令：
+yarn application -list
+yarn application -kill application_1493112625464_0093
+yarn logs -applicationId application_1493112625464_0093
+
+
 sbt package            
 * default search /root/.ivy2/ for dependent pkg in main func, need not mv dependent pkg from .ivy2 to project pkg 
 
@@ -16,3 +22,8 @@ SocketTextStream.scala
 KafkaStream.scala
 * kafka stream
 * run spark app and exe 'kafka-console-producer --broker-list 192.168.1.109:9092 --topic xdr' on another client, then receive on spark app client
+
+DirectKafkaWordCount.scala
+* kafka stream; deliver params
+* run spark app use `spark2-submit --class "DirectKafkaWordCount" simple-app_2.11-1.0.jar "192.168.1.109:9092" "xdr"` on one client,
+* exe 'kafka-console-producer --broker-list 192.168.1.109:9092 --topic xdr' on another client, then receive on spark app client
