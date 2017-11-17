@@ -1,0 +1,14 @@
+sbt package            
+* default search /root/.ivy2/ for dependent pkg in main func, need not mv dependent pkg from .ivy2 to project pkg 
+
+
+spark2-submit --class "SocketTextStream" simple-app_2.11-1.0.jar 2>/dev/null
+* spark2-submit is spark2.1
+* --class is object in .jar to run
+* 2>/dev/null     standard error output
+
+
+object list:
+SocketTextStream.scala     
+* socket stream
+* run spark app and exe 'nc -lk 9999' on same host, enter char then receive on spark app client 
