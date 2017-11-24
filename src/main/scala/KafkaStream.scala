@@ -29,7 +29,7 @@ object KafkaStream {
                 lines.print() 
 
 		//val message = lines.map(_._1) map(_._1)  数据是空的 null  
-		val message = lines.map(_._2) //map(_._2)  才是Kafka里面打入的数据
+		val message = lines.map(_._2) //map(_._2)  才是Kafka里面打入的数据, 等价于map(t => t._2), t._2是元组的第二个元素
                 message.print()
 
 		val words = message.flatMap(_.split(":"))
