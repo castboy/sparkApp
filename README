@@ -28,3 +28,7 @@ DirectKafkaWordCount.scala
 * run spark app use `spark2-submit --master local[*] --class "DirectKafkaWordCount" simple-app_2.11-1.0.jar "192.168.1.107:9092" "xdr"` on one client,
 * exe 'kafka-console-producer --broker-list 192.168.1.107:9092 --topic xdr' on another client, then receive on spark app client
 * caution: without param --master local[*], spark app run on yarn default, maybe 'ACCEPTED' status if cluster resources are not adequately presented.
+
+KafkaToMysql.scala
+*exe 'spark2-submit --class "KafkaToMysql" --jars mysql-connector-java-5.1.7-bin.jar,fastjson-1.2.41.jar simple-app_2.11-1.0.jar 2>/dev/null' on one client,
+*exe 'kafka-console-producer --broker-list 192.168.1.109:9092 --topic xdr' on another client, then enter json `{"name": "wmg", "age": 28}`

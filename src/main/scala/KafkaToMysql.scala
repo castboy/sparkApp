@@ -4,12 +4,13 @@ import org.apache.spark.streaming.kafka.KafkaUtils
 import org.apache.spark.streaming.{Seconds, StreamingContext}  
 import org.apache.spark.rdd.RDD
 
-import scala.util.parsing.json.JSON
 import java.sql.{Connection, DriverManager, Statement}
 
-object StreamingFirst {
+import com.alibaba.fastjson.{JSON, JSONObject}
+import java.util.Date
+
+object KafkaToMysql {
 	def main(args: Array[String]) {
-           
             val brokers = "192.168.1.109:9092"  
             val topics = "xdr"  
 
@@ -18,24 +19,20 @@ object StreamingFirst {
 
             ssc.checkpoint("w_checkpoints")
 
-            println("ssc ok")
             val topicSet = topics.split(",").toSet  
             val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)  
 
             val lines = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc,kafkaParams,topicSet)  
-            println("DStream ok")
             val message = lines.map(_._2) //map(_._2)  才是Kafka里面打入的数据
             val words = message.flatMap(_.split("\n"))
-            println("words ok")
 
             val dStream = words.transform(doHandleRdd(_))
-            println(dStream)
+
             dStream.foreachRDD{rdd => {
                     rdd.foreachPartition{partitionOfRecords =>
                         val stmt = mysqlConn()
                         partitionOfRecords.foreach{record => 
                             mysqlInsert(stmt, record)
-                            println(record)
                         }
                         connClose(stmt)
                     }
@@ -45,7 +42,14 @@ object StreamingFirst {
             ssc.start()
             ssc.awaitTermination()  
 	}  
-       
+
+        def getNowStamp():Long = {
+                val now = new Date()
+                val a = now.getTime
+                var str=a+""
+                str.substring(0,10).toLong
+        }
+
         def mysqlConn(): Statement ={
             var dbConn: Connection = null
             var statement : Statement = null
@@ -69,11 +73,11 @@ object StreamingFirst {
             statement
         }
 
-        def mysqlInsert(stmt: Statement, map: Map[String, Any]) {
+        def mysqlInsert(stmt: Statement, json: JSONObject) {
             try{
-                var sql = "insert into persion (name, age) values ('%s', %d)".format(map.getOrElse("name", ""), map.getOrElse("age", 0))
-                println(sql)
+                var sql = "insert into persion (name, age) values ('%s', %d)".format(json.get("name"), json.get("age"))
                 val prep = stmt.execute(sql) 
+                println("INSERT " + json + " OK")
             } catch {
                 case e: Exception => println(e)
             }
@@ -84,57 +88,16 @@ object StreamingFirst {
             println("conn close")
         }
 
-        def doHandleRdd(rdd: RDD[String]): RDD[Map[String, Any]]  = {
-            println("doHandleRdd")
+        def doHandleRdd(rdd: RDD[String]): RDD[JSONObject]  = {
+            println("-----***-----" + getNowStamp() + "-----***-----")
             rdd.map(handleInfo(_))
         }
-
         
-        def handleInfo(s: String): Map[String, Any] = {
-            val o: Option[Any] = stringToJson(s)
-            var ret: Map[String, Any] = Map("name"->"wmg", "age"->27)
-            ret
-            /*o match {
-
-                case Some(map: Map[String, Any]) => {
-                   //ret = loopMap(map)
-                   //ret = jsonToMap(o)
-                   //ret = map
-                }
-                case None => {
-                    println("parsing failed.")
-                }
-                case other => {
-                    println("Unknown data structure: " + other)
-                }
-
-                ret
-            }
-            */
+        def handleInfo(s: String): JSONObject = {
+            stringToJson(s) 
         }
 
-
-        /*def loopMap(map: Map[String, Any]): Map[String, Any] = {
-            val m: Map[String, Any] = map
-
-            for ((x, y) <- map) {
-                y match {
-                    case s: String => println("string:" + s)
-                    case i: Int => println("int:" + i)
-                    case d: Double => println("double:" + d)
-                    case b: Boolean => println("boolean:" + b)
-                }
-            }
-            
-            m
-        }*/
-
-        def stringToJson(s: String): Option[Any] = {
-            JSON.parseFull(s)
+        def stringToJson(s: String): JSONObject = {
+            return JSON.parseObject(s)
         }
-
-        def jsonToMap(obj: Option[Any]): Map[String,Any] = {
-                obj.get.asInstanceOf[Map[String,Any]]
-        }
-
 }  
